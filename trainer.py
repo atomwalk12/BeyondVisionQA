@@ -11,15 +11,19 @@ from nltk import edit_distance
 from torch.utils.data import DataLoader
 from transformers.optimization import get_cosine_schedule_with_warmup
 from lightning.pytorch.loggers import WandbLogger
+from config import generate_parameters
+from config import metrics
 
+from transformers import AutoProcessor
+
+processor = AutoProcessor.from_pretrained(MODEL_ID)
+processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
 
 if dataset_config.get('dataset_name') == "scienceqa":
-    from config import bertscore, generate_parameters, rouge
     from dataset_configs.scienceqa import translate
-    from transformers import AutoProcessor
-
-    processor = AutoProcessor.from_pretrained(MODEL_ID)
-    processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
+    
+if dataset_config.get('dataset_name') == "daquar":
+    from dataset_configs.dquar import translate    
 
 
 class BLIPModelPLModule(L.LightningModule):
@@ -67,31 +71,16 @@ class BLIPModelPLModule(L.LightningModule):
         scores = []
         i = 0
         for pred, answer in zip(predictions, answers):
-            pred = re.sub(r"(?:(?<=>) | (?=</s_))", "", pred)
-            scores.append(edit_distance(pred, answer) / max(len(pred), len(answer)))
-
             print(f"Question: {self.val_dataset.dataset[batch_idx*self.batch_size+i]['question']}")
-            print(f"Choices: {self.val_dataset.dataset[batch_idx*self.batch_size+i]['choices']}")
-            print(f"    Prediction: {pred}\n")
-            print(f"    Answer: {answer}")
-            print(f"    Normed ED: {scores[-1]}\n\n")
+            print(f"Choices: {self.val_dataset.dataset[batch_idx*self.batch_size+i]['answer']}")
+            print(f"Prediction: {pred}")
+            print(f"Answer: {answer}")
             i += 1
-        
-        # edit_distance scores
-        self.log("val_edit_distance", np.mean(scores))
-        print("val_edit_distance:", np.mean(scores))
-        
-        # rouge scores
-        rouge_scores = rouge.compute(predictions=predictions, references=answers)
-        self.log("val_rouge_f1", rouge_scores["rouge1"].mid.fmeasure)
-        print("val_rouge_f1:", rouge_scores["rouge1"].mid.fmeasure)
-        
-        # bert scores
-        bertscores = bertscore.compute(predictions=predictions, references=answers, lang="en")
-        self.log("val_bertscore_f1", np.mean(bertscores["f1"])) 
-        print("val_bertscore_f1:", np.mean(bertscores["f1"]), "\n\n")
-        
-        return rouge_scores
+
+        for metric in metrics:
+            scores = metric.compute(predictions=predictions, references=answers, model=self)
+            
+        return scores
 
     def configure_optimizers(self):
         # you could also add a learning rate scheduler if you want
@@ -197,7 +186,7 @@ class PushToHubCallback(Callback):
 def train(module: BLIPModelPLModule):
     hyperparams = module.hyperparams
 
-    early_stop_callback = EarlyStopping(monitor="val_edit_distance", patience=3, verbose=False, mode="min")
+    early_stop_callback = EarlyStopping(monitor="wup_measure", patience=3, verbose=False, mode="min")
 
 
     wandb_logger = WandbLogger(project=WANDB_PROJECT, name=WANDB_NAME)

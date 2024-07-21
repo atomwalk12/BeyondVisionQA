@@ -7,6 +7,12 @@ from config import dataset_config
 if dataset_config.get('dataset_name') == "scienceqa":
     from dataset_configs.scienceqa import filter, get_image
 
+if dataset_config.get('dataset_name') == "textvqa":
+    from dataset_configs.textvqa import filter, get_image
+
+if dataset_config.get('dataset_name') == "daquar":
+    from dataset_configs.dquar import filter, get_image
+
 
 class QADataset(Dataset):
     """
@@ -17,14 +23,17 @@ class QADataset(Dataset):
 
     def __init__(
         self,
-        dataset_name_or_path: str,
+        config: str,
         split: str = "train"
     ):
         super().__init__()
 
         self.split = split
 
-        self.dataset = load_dataset(dataset_name_or_path, split=self.split)
+        if config['path'] == 'local':
+            self.dataset = config['load_fn'](split)
+        else:
+            self.dataset = load_dataset(**config, split=self.split)
         self.dataset = filter(self.dataset)
         self.dataset_length = len(self.dataset)
 

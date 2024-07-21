@@ -1,18 +1,28 @@
+
+
 MAX_LENGTH = 384
 PEFT_ID = "atomwalk12/instructblip-aw12-sqa-v2"
 MODEL_ID = "Salesforce/instructblip-vicuna-7b"
 WANDB_PROJECT = "InstructBLIP"
 WANDB_NAME = PEFT_ID
-DATASET_NAME = "derek-thomas/ScienceQA"
+
 CONTINUE = False
 REVISION = None
 
 dataset_config = {
-    'dataset_name': 'scienceqa',
+    'config':{ 
+        # 'path': "cambridgeltl/vsr_random",: https://github.com/cambridgeltl/visual-spatial-reasoning/tree/master/data
+        # 'facebook/textvqa', # Alternatives: derek-thomas/ScienceQA
+        # 'data_files': {"train": "train.jsonl", "dev": "dev.jsonl", "test": "test.jsonl"}
+        # local: DAQUAR
+        'path': 'local'
+    },
+    'dataset_name': 'daquar', # Alternatives: textvqa, scienceqa, vsr_random
     'checkpoint_dir': "./InstructBLIP"
 }
 
 hyperparameters = {
+    "target_model": "blip",
     "max_epochs": 20,
     "warmup_epochs": 1.67,
   # "val_check_interval": 0.2,
@@ -20,7 +30,7 @@ hyperparameters = {
     "gradient_clip_val": 1.0,
     "accumulate_grad_batches": 8,
     "lr": 1e-4,
-    "batch_size": 2,
+    "batch_size": 7,
     "seed":1337,
     "num_nodes": 1,
     "warmup_steps": 50,
@@ -30,9 +40,11 @@ hyperparameters = {
     "weight_decay": 0.05
 }
 
-if dataset_config['dataset_name'] == 'scienceqa':
+
+
+
+if hyperparameters['target_model'] == 'blip':
     from config import MAX_LENGTH
-    from datasets import load_metric
 
     generate_parameters = {
         "do_sample": True,
@@ -44,6 +56,32 @@ if dataset_config['dataset_name'] == 'scienceqa':
         "length_penalty": 1.0,
         "temperature": 1,
     }
+    
 
-    bertscore = load_metric("bertscore")
-    rouge = load_metric("rouge")
+    lora_blip_config = {
+        "r": 16,
+        "lora_alpha": 32,
+        "lora_dropout": 0.05,
+        "target_modules": ['query', 'key', 'value', 'q_proj', 'k_proj', 'v_proj', 'o_proj','fc1', 'fc2']
+    }
+
+if dataset_config['dataset_name'] == 'scienceqa':
+    from model import EditDistanceMetric, BertScoreMetric, RougeMetric
+    
+    metrics = [ EditDistanceMetric(), BertScoreMetric("bertscore"), RougeMetric("rouge") ]
+
+if dataset_config['dataset_name'] == 'textvqa':
+    from config import MAX_LENGTH
+    from model import VQA
+
+    metrics = [ EditDistanceMetric(), BertScoreMetric("bertscore"), RougeMetric("rouge") ]
+
+if dataset_config['dataset_name'] == 'daquar':
+    from dataset_configs.dquar import load_data, get_answer_space
+    from model import WUPMeasure, F1ScoreMetric, AccuracyMetric
+    
+    dataset_config['config'].update({'load_fn': load_data})
+    
+    answer_space = get_answer_space()
+    
+    metrics = [ AccuracyMetric(), F1ScoreMetric(), WUPMeasure(answer_space) ]
