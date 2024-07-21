@@ -6,8 +6,8 @@ MODEL_ID = "Salesforce/instructblip-vicuna-7b"
 WANDB_PROJECT = "InstructBLIP"
 WANDB_NAME = PEFT_ID
 
-CONTINUE = False
-REVISION = None
+CONTINUE = True
+REVISION = "1e6ce1964275c7de184b6e2817bacac970dbafe2"
 
 dataset_config = {
     'config':{ 

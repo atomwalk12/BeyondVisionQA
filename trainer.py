@@ -7,7 +7,6 @@ import torch
 from config import PEFT_ID, MAX_LENGTH, MODEL_ID, dataset_config, WANDB_PROJECT, WANDB_NAME
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
-from nltk import edit_distance
 from torch.utils.data import DataLoader
 from transformers.optimization import get_cosine_schedule_with_warmup
 from lightning.pytorch.loggers import WandbLogger
@@ -72,7 +71,6 @@ class BLIPModelPLModule(L.LightningModule):
         i = 0
         for pred, answer in zip(predictions, answers):
             print(f"Question: {self.val_dataset.dataset[batch_idx*self.batch_size+i]['question']}")
-            print(f"Choices: {self.val_dataset.dataset[batch_idx*self.batch_size+i]['answer']}")
             print(f"Prediction: {pred}")
             print(f"Answer: {answer}")
             i += 1
@@ -171,10 +169,9 @@ class BLIPSqaPLModule(BLIPModelPLModule):
     
 class PushToHubCallback(Callback):
     def on_train_epoch_end(self, trainer, pl_module):
-        if trainer.current_epoch % 2 == 1:
-            print(f"Pushing model to the hub, epoch {trainer.current_epoch}")
-            pl_module.model.push_to_hub(PEFT_ID,
-                                        commit_message=f"Training in progress, epoch {trainer.current_epoch}")
+        print(f"Pushing model to the hub, epoch {trainer.current_epoch}")
+        pl_module.model.push_to_hub(PEFT_ID,
+                                    commit_message=f"Training in progress, epoch {trainer.current_epoch}")
 
     def on_train_end(self, trainer, pl_module):
         print("Pushing model to the hub after training")
