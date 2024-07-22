@@ -4,13 +4,13 @@ from typing import Dict
 from datasets import load_dataset
 from config import dataset_config
 
-if dataset_config.get('dataset_name') == "scienceqa":
+if dataset_config['name'] == "scienceqa":
     from dataset_configs.scienceqa import filter, get_image
 
-if dataset_config.get('dataset_name') == "textvqa":
+if dataset_config['name'] == "textvqa":
     from dataset_configs.textvqa import filter, get_image
 
-if dataset_config.get('dataset_name') == "daquar":
+if dataset_config['name'] == "daquar":
     from dataset_configs.dquar import filter, get_image
 
 

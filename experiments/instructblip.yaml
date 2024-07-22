@@ -1,0 +1,65 @@
+# path: "cambridgeltl/vsr_random" # https://github.com/cambridgeltl/visual-spatial-reasoning/tree/master/data
+  # facebook/textvqa # Alternatives: derek-thomas/ScienceQA
+  # data_files: {"train": "train.jsonl", "dev": "dev.jsonl", "test": "test.jsonl"}
+  # local: DAQUAR
+  # Alternatives: textvqa, scienceqa, vsr_random
+
+dataset:
+  path: "local"
+  name: "daquar" 
+  checkpoint_dir: "./InstructBLIP"
+
+model:
+  peft_id: "atomwalk12/instructblip-aw12-sqa-v2"
+  model_id: "Salesforce/instructblip-vicuna-7b"
+  continue: True
+  revision: "1e6ce1964275c7de184b6e2817bacac970dbafe2"
+  target: "blip"
+  hyperparameters:
+    max_epochs: 20
+    warmup_epochs: 1.67
+    # val_check_interval: 0.2
+    check_val_every_n_epoch: 2
+    gradient_clip_val: 1.0
+    accumulate_grad_batches: 8
+    lr: 0.0001
+    batch_size: 7
+    seed: 1337
+    num_nodes: 1
+    warmup_steps: 50
+    result_path: "./result"
+    verbose: true
+    betas: 
+      - 0.9
+      - 0.999
+    weight_decay: 0.05
+    max_length: 382
+
+  generate_parameters:
+    do_sample: True
+    num_beams: 5
+    max_new_tokens: 256 
+    min_length: 1
+    top_p: 0.9
+    repetition_penalty: 1.5
+    length_penalty: 1.0
+    temperature: 1  
+
+  peft:
+    r: 16
+    lora_alpha: 32
+    lora_dropout: 0.05
+    target_modules:
+      - query
+      - key
+      - value
+      - q_proj
+      - k_proj
+      - v_proj
+      - o_proj
+      - fc1
+      - fc2
+
+wandb:
+  project: "InstructBLIP"
+  name: "atomwalk12/instructblip-aw12-sqa-v2"

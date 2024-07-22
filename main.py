@@ -1,7 +1,6 @@
-from config import dataset_config
+from config import dataset_config, model_config
 from qadataset import QADataset
 from trainer import BLIPSqaPLModule, train
-from config import hyperparameters
 from model import get_model
 
 
@@ -10,14 +9,11 @@ if __name__ == '__main__':
   # ntlk.download('wordnet')
 
   # torch.multiprocessing.set_start_method('spawn')
-  config = dataset_config['config']
-  train_dataset = QADataset(config, split="train")
-  val_dataset = QADataset(config, split="eval")
-  
-  # train_dataset = QADataset(DATASET_NAME,  split="train[:5]")
-  # val_dataset = QADataset(DATASET_NAME, split="validation[:10]")
+  train_dataset = QADataset(dataset_config, split="train[:5]")
+  val_dataset = QADataset(dataset_config, split="eval[:5]")
   
   model = get_model(quantization='4bit')
   
+  hyperparameters = model_config['hyperparameters']
   module = BLIPSqaPLModule(hyperparameters, model, train_dataset, val_dataset)
   train(module)

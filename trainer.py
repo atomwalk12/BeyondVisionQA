@@ -1,27 +1,29 @@
 import math
-import re
-
 import lightning as L
-import numpy as np
 import torch
-from config import PEFT_ID, MAX_LENGTH, MODEL_ID, dataset_config, WANDB_PROJECT, WANDB_NAME
+from config import dataset_config, model_config, wandb
 from lightning.pytorch.callbacks import Callback
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from torch.utils.data import DataLoader
 from transformers.optimization import get_cosine_schedule_with_warmup
 from lightning.pytorch.loggers import WandbLogger
-from config import generate_parameters
 from config import metrics
-
 from transformers import AutoProcessor
+
+generate_parameters = model_config['generate_parameters']
+MAX_LENGTH = generate_parameters['max_new_tokens']
+PEFT_ID = model_config['peft_id']
+MODEL_ID = model_config['model_id']
+WANDB_PROJECT = wandb['project']
+WANDB_NAME = wandb['name']
 
 processor = AutoProcessor.from_pretrained(MODEL_ID)
 processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
 
-if dataset_config.get('dataset_name') == "scienceqa":
+if dataset_config['name'] == "scienceqa":
     from dataset_configs.scienceqa import translate
     
-if dataset_config.get('dataset_name') == "daquar":
+if dataset_config['name'] == "daquar":
     from dataset_configs.dquar import translate    
 
 

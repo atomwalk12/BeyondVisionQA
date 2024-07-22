@@ -10,8 +10,16 @@ from nltk import edit_distance
 import re
 from sklearn.metrics import accuracy_score, f1_score
 
-from config import PEFT_ID, REVISION, CONTINUE, MODEL_ID, hyperparameters
+from config import model_config
 from nltk.corpus import wordnet
+
+
+PEFT_ID = model_config['peft_id']
+REVISION = model_config['revision']
+CONTINUE = model_config['continue']
+MODEL_ID = model_config['model_id']
+hyperparameters = model_config['hyperparameters']
+
 
 def get_model(quantization='4bit'):
     ## Load model
@@ -68,8 +76,8 @@ def get_model(quantization='4bit'):
             )
         
         if hyperparameters['target_model'] == 'blip':
-            from config import lora_blip_config
-            lora_config = lora_blip_config
+            from config import model_config
+            lora_config = model_config['peft']
         else:
             raise KeyError(f"Undefined lora config for {hyperparameters['target_model']}")
         
