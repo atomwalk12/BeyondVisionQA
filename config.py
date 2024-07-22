@@ -2,7 +2,7 @@
 from utils import load_config
 
 # Load the configuration
-dataset_config, model_config, wandb = load_config('experiment1_blip2_easyvqa.yaml')
+dataset_config, model_config, wandb = load_config('experiment2.yaml')
 
 if dataset_config['name'] == 'scienceqa':
     from model import EditDistanceMetric, BertScoreMetric, RougeMetric

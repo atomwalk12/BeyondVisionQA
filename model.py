@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from transformers import BitsAndBytesConfig, InstructBlipForConditionalGeneration
+from transformers import BitsAndBytesConfig, Blip2ForConditionalGeneration, InstructBlipForConditionalGeneration
 from peft import PeftConfig
 import torch
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model
@@ -9,17 +9,24 @@ import numpy as np
 from nltk import edit_distance
 import re
 from sklearn.metrics import accuracy_score, f1_score
-
+from transformers import AutoModel
 from config import model_config
 from nltk.corpus import wordnet
 
+from lightning.pytorch.callbacks import Callback
 
 PEFT_ID = model_config['peft_id']
 REVISION = model_config['revision']
 CONTINUE = model_config['continue']
 MODEL_ID = model_config['model_id']
+TARGET = model_config['target']
 hyperparameters = model_config['hyperparameters']
 
+
+cls = {
+    'blip2': Blip2ForConditionalGeneration,
+    'instructblip': InstructBlipForConditionalGeneration
+}
 
 def get_model(quantization='4bit'):
     ## Load model
@@ -54,7 +61,7 @@ def get_model(quantization='4bit'):
         config = PeftConfig.from_pretrained(PEFT_ID, revision=REVISION)
         config.inference_mode = False
        
-        model = InstructBlipForConditionalGeneration.from_pretrained(
+        model = cls[TARGET].from_pretrained(
             config.base_model_name_or_path,
             torch_dtype=torch.float16,
             quantization_config=quantization_config(quantization)
@@ -65,21 +72,17 @@ def get_model(quantization='4bit'):
     else:
         if quantization == "none":
             print("Loading model without using quantization.")
-            model = InstructBlipForConditionalGeneration.from_pretrained(MODEL_ID).to("cuda")
+            model = cls[TARGET].from_pretrained(MODEL_ID).to("cuda")
 
         else: 
             print(f"Loading model with quantization ({quantization})")
-            model = InstructBlipForConditionalGeneration.from_pretrained(
+            model = cls[TARGET].from_pretrained(
                 MODEL_ID,
                 torch_dtype=torch.float16,
                 quantization_config=quantization_config(quantization)
             )
         
-        if hyperparameters['target_model'] == 'blip':
-            from config import model_config
-            lora_config = model_config['peft']
-        else:
-            raise KeyError(f"Undefined lora config for {hyperparameters['target_model']}")
+        lora_config = model_config['peft']
         
         lora_config = LoraConfig(**lora_config)
             
@@ -211,3 +214,20 @@ class WUPMeasure():
     def batch_wup_measure(self, references, predictions):
         wup_scores = [self.wup_measure(label, pred) for label, pred in zip(references, predictions)]
         return np.mean(wup_scores)
+
+
+
+class PushToHubCallback(Callback):
+    def on_train_epoch_end(self, trainer, pl_module):
+        PEFT_ID = model_config['peft_id']
+        print(f"Pushing model to the hub, epoch {trainer.current_epoch}")
+        pl_module.model.push_to_hub(PEFT_ID,
+                                    commit_message=f"Training in progress, epoch {trainer.current_epoch}")
+
+    def on_train_end(self, trainer, pl_module):
+        PEFT_ID = model_config['peft_id']
+        print("Pushing model to the hub after training")
+        pl_module.processor.push_to_hub(PEFT_ID,
+                                    commit_message="Training done")
+        pl_module.model.push_to_hub(PEFT_ID,
+                                    commit_message="Training done")

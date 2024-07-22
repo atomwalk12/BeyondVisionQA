@@ -30,7 +30,7 @@ if dataset_config['name'] == "easy-vqa":
     from dataset_configs.easy_vqa import translate   
 
 
-class BLIPModelPLModule(L.LightningModule):
+class InstructBLIPModelPLModule(L.LightningModule):
     def __init__(self, hyperparameters, model, train_dataset, val_dataset):
         super().__init__()
         self.hyperparams = hyperparameters
@@ -118,7 +118,7 @@ class BLIPModelPLModule(L.LightningModule):
         return [optimizer], [scheduler]
 
     
-class BLIPSqaPLModule(BLIPModelPLModule):
+class InstructBLIPSqaPLModule(InstructBLIPModelPLModule):
     
     def __init__(self, config, model, train_dataset, val_dataset):
         super().__init__(config, model, train_dataset, val_dataset)
@@ -165,51 +165,8 @@ class BLIPSqaPLModule(BLIPModelPLModule):
     
     
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, collate_fn=BLIPSqaPLModule.train_collate_fn, batch_size=self.batch_size, shuffle=True, num_workers=4)
+        return DataLoader(self.train_dataset, collate_fn=InstructBLIPSqaPLModule.train_collate_fn, batch_size=self.batch_size, shuffle=True, num_workers=4)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, collate_fn=BLIPSqaPLModule.eval_collate_fn, batch_size=self.batch_size, shuffle=False, num_workers=4)
+        return DataLoader(self.val_dataset, collate_fn=InstructBLIPSqaPLModule.eval_collate_fn, batch_size=self.batch_size, shuffle=False, num_workers=4)
     
-    
-    
-class PushToHubCallback(Callback):
-    def on_train_epoch_end(self, trainer, pl_module):
-        print(f"Pushing model to the hub, epoch {trainer.current_epoch}")
-        pl_module.model.push_to_hub(PEFT_ID,
-                                    commit_message=f"Training in progress, epoch {trainer.current_epoch}")
-
-    def on_train_end(self, trainer, pl_module):
-        print("Pushing model to the hub after training")
-        pl_module.processor.push_to_hub(PEFT_ID,
-                                    commit_message="Training done")
-        pl_module.model.push_to_hub(PEFT_ID,
-                                    commit_message="Training done")
-
-def train(module: BLIPModelPLModule):
-    hyperparams = module.hyperparams
-
-    early_stop_callback = EarlyStopping(monitor="wup_measure", patience=3, verbose=False, mode="min")
-
-
-    wandb_logger = WandbLogger(project=WANDB_PROJECT, name=WANDB_NAME)
-
-    wandb_logger.experiment.config.update(hyperparams)
-    wandb_logger.experiment.config.update(generate_parameters)
-
-    trainer = L.Trainer(
-            accelerator="gpu",
-            devices=[0],
-            max_epochs=hyperparams.get("max_epochs"),
-            accumulate_grad_batches=hyperparams.get("accumulate_grad_batches"),
-            check_val_every_n_epoch=hyperparams.get("check_val_every_n_epoch"),
-            gradient_clip_val=hyperparams.get("gradient_clip_val"),
-            precision="16-mixed",
-          # limit_train_batches=6,
-          # limit_val_batches=5,
-            num_sanity_val_steps=0,
-            default_root_dir=model_config['local_checkpoint_dir'], # used to save checkpoints: see ModelCheckpoint class
-            logger=wandb_logger,
-            callbacks=[PushToHubCallback(), early_stop_callback],
-    )
-
-    trainer.fit(module)

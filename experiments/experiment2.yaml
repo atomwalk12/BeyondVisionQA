@@ -14,12 +14,13 @@ model:
   model_id: "Salesforce/instructblip-vicuna-7b"
   continue: True
   revision: "1e6ce1964275c7de184b6e2817bacac970dbafe2"
-  target: "blip"
+  local_checkpoint_dir: "./lightning_checkpoints"
+  target: "instructblip"
   hyperparameters:
     max_epochs: 20
     warmup_epochs: 1.67
     # val_check_interval: 0.2
-    check_val_every_n_epoch: 2
+    check_val_every_n_epoch: 1
     gradient_clip_val: 1.0
     accumulate_grad_batches: 8
     lr: 0.0001
