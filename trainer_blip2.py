@@ -18,7 +18,7 @@ WANDB_PROJECT = wandb['project']
 WANDB_NAME = wandb['name']
 
 processor = AutoProcessor.from_pretrained(MODEL_ID)
-# NOTE processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
+# processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
 
 if dataset_config['name'] == "easy-vqa":
     from dataset_configs.easy_vqa import translate   
@@ -129,8 +129,7 @@ class BLIP2PLModule(BLIP2ModelPLModule):
         inputs = processor(text=texts, images=images, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
         
         labels = inputs["input_ids"].clone()
-        # Padding ignored by default
-        # labels[labels == processor.tokenizer.pad_token_id] = -100 
+        # TODO labels[labels == processor.tokenizer.pad_token_id] = -100 
 
         return inputs, labels
 

@@ -6,7 +6,7 @@ model:
   peft_id: atomwalk12/blip2-aw12-easyvqa
   model_id: Salesforce/blip2-flan-t5-xl
   continue: False
-  revision: "1e6ce1964275c7de184b6e2817bacac970dbafe2"
+  revision: None
   local_checkpoint_dir: "./lightning_checkpoints"
   target: "blip2"
   hyperparameters:
@@ -19,7 +19,6 @@ model:
     batch_size: 8
     seed: 1337
     num_nodes: 1
-    warmup_steps: 50
     result_path: "./result"
     verbose: true
     betas: 
@@ -29,14 +28,7 @@ model:
     max_length: 382
 
   generate_parameters: 
-    # do_sample: True
-    # num_beams: 5
     max_new_tokens: 256 
-    # min_length: 1
-    # top_p: 0.9
-    # repetition_penalty: 1.5
-    # length_penalty: 1.0
-    # temperature: 1  
 
   peft:
     r: 16

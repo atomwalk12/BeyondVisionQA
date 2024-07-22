@@ -93,7 +93,18 @@ def get_model(quantization='4bit'):
 
     return model
 
-
+class EditDistanceMetric():
+    
+    def __init__(self, metric) -> None:
+        self.metric = load_metric("rouge")
+    
+    def compute(self, predictions,references, model: L.LightningModule):
+        scores = self.edit_distance(predictions=predictions, references=references)
+        model.log("val_rouge_f1", scores["rouge1"].mid.fmeasure)
+        print("val_rouge_f1:", scores["rouge1"].mid.fmeasure)
+        return scores
+    
+    
 class Metric():
     
     @abstractmethod

@@ -2,7 +2,7 @@
 from utils import load_config
 
 # Load the configuration
-dataset_config, model_config, wandb = load_config('experiment2.yaml')
+dataset_config, model_config, wandb = load_config('experiment1_blip2.yaml')
 
 if dataset_config['name'] == 'scienceqa':
     from model import EditDistanceMetric, BertScoreMetric, RougeMetric
@@ -10,8 +10,7 @@ if dataset_config['name'] == 'scienceqa':
     metrics = [ EditDistanceMetric(), BertScoreMetric("bertscore"), RougeMetric("rouge") ]
 
 if dataset_config['name'] == 'textvqa':
-    from config import MAX_LENGTH
-    from model import VQA
+    from model import EditDistanceMetric, BertScoreMetric, RougeMetric
 
     metrics = [ EditDistanceMetric(), BertScoreMetric("bertscore"), RougeMetric("rouge") ]
 

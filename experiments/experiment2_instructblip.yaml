@@ -1,25 +1,17 @@
-# path: "cambridgeltl/vsr_random" # https://github.com/cambridgeltl/visual-spatial-reasoning/tree/master/data
-  # facebook/textvqa # Alternatives: derek-thomas/ScienceQA
-  # data_files: {"train": "train.jsonl", "dev": "dev.jsonl", "test": "test.jsonl"}
-  # local: DAQUAR
-  # Alternatives: textvqa, scienceqa, vsr_random
-
 dataset:
-  path: "local"
-  name: "daquar" 
-  checkpoint_dir: "./InstructBLIP"
+  path: "auto"
+  name: "easy-vqa" 
 
 model:
   peft_id: "atomwalk12/instructblip-aw12-sqa-v2"
   model_id: "Salesforce/instructblip-vicuna-7b"
-  continue: True
-  revision: "1e6ce1964275c7de184b6e2817bacac970dbafe2"
+  continue: False
+  revision: None
   local_checkpoint_dir: "./lightning_checkpoints"
   target: "instructblip"
   hyperparameters:
     max_epochs: 20
     warmup_epochs: 1.67
-    # val_check_interval: 0.2
     check_val_every_n_epoch: 1
     gradient_clip_val: 1.0
     accumulate_grad_batches: 8
@@ -27,19 +19,18 @@ model:
     batch_size: 7
     seed: 1337
     num_nodes: 1
-    warmup_steps: 50
     result_path: "./result"
     verbose: true
     betas: 
       - 0.9
       - 0.999
     weight_decay: 0.05
-    max_length: 382
+    max_length: 10
 
   generate_parameters:
     do_sample: True
     num_beams: 5
-    max_new_tokens: 256 
+    max_new_tokens: 10 
     min_length: 1
     top_p: 0.9
     repetition_penalty: 1.5
@@ -64,3 +55,10 @@ model:
 wandb:
   project: "InstructBLIP"
   name: "atomwalk12/instructblip-aw12-sqa-v2"
+
+# path: "cambridgeltl/vsr_random" # https://github.com/cambridgeltl/visual-spatial-reasoning/tree/master/data
+  # facebook/textvqa # Alternatives: derek-thomas/ScienceQA
+  # data_files: {"train": "train.jsonl", "dev": "dev.jsonl", "test": "test.jsonl"}
+  # local: DAQUAR
+  # Alternatives: textvqa, scienceqa, vsr_random
+    # val_check_interval: 0.2 hyperparameters
