@@ -9,8 +9,8 @@ if __name__ == '__main__':
   # ntlk.download('wordnet')
 
   # torch.multiprocessing.set_start_method('spawn')
-  train_dataset = QADataset(dataset_config, split="train[:5]")
-  val_dataset = QADataset(dataset_config, split="eval[:5]")
+  train_dataset = QADataset(dataset_config, split="train")
+  val_dataset = QADataset(dataset_config, split="val")
   
   model = get_model(quantization='4bit')
   

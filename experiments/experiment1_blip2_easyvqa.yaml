@@ -1,0 +1,58 @@
+dataset:
+  path: "auto"
+  name: "easy-vqa" 
+
+model:
+  peft_id: "atomwalk12/blip2-aw12-sqa-v2"
+  model_id: Salesforce/blip2-flan-t5-xl
+  continue: True
+  revision: "1e6ce1964275c7de184b6e2817bacac970dbafe2"
+  local_checkpoint_dir: "./lightning_checkpoints"
+  target: "blip"
+  hyperparameters:
+    max_epochs: 20
+    warmup_epochs: 1.67
+    check_val_every_n_epoch: 2
+    gradient_clip_val: 1.0
+    accumulate_grad_batches: 8
+    lr: 0.0001
+    batch_size: 7
+    seed: 1337
+    num_nodes: 1
+    warmup_steps: 50
+    result_path: "./result"
+    verbose: true
+    betas: 
+      - 0.9
+      - 0.999
+    weight_decay: 0.05
+    max_length: 382
+
+  generate_parameters:
+    do_sample: True
+    num_beams: 5
+    max_new_tokens: 256 
+    min_length: 1
+    top_p: 0.9
+    repetition_penalty: 1.5
+    length_penalty: 1.0
+    temperature: 1  
+
+  peft:
+    r: 16
+    lora_alpha: 32
+    lora_dropout: 0.05
+    target_modules:
+      - query
+      - key
+      - value
+      - q_proj
+      - k_proj
+      - v_proj
+      - o_proj
+      - fc1
+      - fc2
+
+wandb:
+  project: "InstructBLIP"
+  name: "atomwalk12/instructblip-aw12-sqa-v2"

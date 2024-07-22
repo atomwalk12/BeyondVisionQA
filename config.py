@@ -2,7 +2,7 @@
 from utils import load_config
 
 # Load the configuration
-dataset_config, model_config, wandb = load_config('instructblip.yaml')
+dataset_config, model_config, wandb = load_config('experiment1_blip2_easyvqa.yaml')
 
 if dataset_config['name'] == 'scienceqa':
     from model import EditDistanceMetric, BertScoreMetric, RougeMetric
@@ -21,5 +21,16 @@ if dataset_config['name'] == 'daquar':
     
     dataset_config.update({'load_fn': load_data}) 
     answer_space = get_answer_space()
+    
+    metrics = [ AccuracyMetric(), F1ScoreMetric(), WUPMeasure(answer_space) ]
+
+
+if dataset_config['name'] == 'easy-vqa':
+    from dataset_configs.easy_vqa import load_data
+    from model import WUPMeasure, F1ScoreMetric, AccuracyMetric
+    from easy_vqa import get_answers
+    
+    dataset_config.update({'load_fn': load_data}) 
+    answer_space = get_answers()
     
     metrics = [ AccuracyMetric(), F1ScoreMetric(), WUPMeasure(answer_space) ]

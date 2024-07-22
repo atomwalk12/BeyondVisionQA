@@ -139,7 +139,7 @@ class F1ScoreMetric():
         return scores
 
 class WUPMeasure():
-    def __init__(self, answer_space) -> None:
+    def __init__(self, answer_space = None) -> None:
         self.answer_space = answer_space
     
     def compute(self, predictions, references, model: L.LightningModule):

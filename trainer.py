@@ -26,6 +26,9 @@ if dataset_config['name'] == "scienceqa":
 if dataset_config['name'] == "daquar":
     from dataset_configs.dquar import translate    
 
+if dataset_config['name'] == "easy-vqa":
+    from dataset_configs.easy_vqa import translate   
+
 
 class BLIPModelPLModule(L.LightningModule):
     def __init__(self, hyperparameters, model, train_dataset, val_dataset):
@@ -204,7 +207,7 @@ def train(module: BLIPModelPLModule):
           # limit_train_batches=6,
           # limit_val_batches=5,
             num_sanity_val_steps=0,
-            default_root_dir=dataset_config['checkpoint_dir'], # used to save checkpoints: see ModelCheckpoint class
+            default_root_dir=model_config['local_checkpoint_dir'], # used to save checkpoints: see ModelCheckpoint class
             logger=wandb_logger,
             callbacks=[PushToHubCallback(), early_stop_callback],
     )

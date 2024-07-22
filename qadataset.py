@@ -13,6 +13,8 @@ if dataset_config['name'] == "textvqa":
 if dataset_config['name'] == "daquar":
     from dataset_configs.dquar import filter, get_image
 
+if dataset_config['name'] == "easy-vqa":
+    from dataset_configs.easy_vqa import filter, get_image
 
 class QADataset(Dataset):
     """
@@ -30,7 +32,7 @@ class QADataset(Dataset):
 
         self.split = split
 
-        if config['path'] == 'local':
+        if config['path'] == 'local' or config['path'] == 'auto':
             self.dataset = config['load_fn'](split)
         else:
             self.dataset = load_dataset(**config, split=self.split)
@@ -39,8 +41,7 @@ class QADataset(Dataset):
 
         self.token_sequences = []
         for sample in self.dataset:
-            ground_truth = sample
-            self.token_sequences.append(ground_truth)
+            self.token_sequences.append(sample)
 
 
     def __len__(self) -> int:
