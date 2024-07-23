@@ -37,7 +37,7 @@ def use_textual_labels(example, training):
     output = example["answer"]
     
     if training:
-        prompt = f"{input}. Answer: {output}."
+        prompt = f"Question: {input} Answer: {output}."
         return prompt
     else:
         prompt = f"{input}. Answer:"

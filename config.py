@@ -26,10 +26,10 @@ if dataset_config['name'] == 'daquar':
 
 if dataset_config['name'] == 'easy-vqa':
     from dataset_configs.easy_vqa import load_data
-    from model import WUPMeasure, F1ScoreMetric, AccuracyMetric
+    from model import WUPMeasure, F1ScoreMetric, AccuracyMetric, BertScoreMetric
     from easy_vqa import get_answers
     
     dataset_config.update({'load_fn': load_data}) 
     answer_space = get_answers()
     
-    metrics = [ AccuracyMetric(), F1ScoreMetric(), WUPMeasure(answer_space) ]
+    metrics = [ AccuracyMetric(), F1ScoreMetric(), WUPMeasure(answer_space), BertScoreMetric() ]

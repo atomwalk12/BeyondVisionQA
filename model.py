@@ -124,11 +124,11 @@ class RougeMetric():
     
 class BertScoreMetric():
     
-    def __init__(self, metric) -> None:
+    def __init__(self) -> None:
         self.metric = load_metric("bertscore")
     
     def compute(self, predictions,references, model: L.LightningModule):
-        scores = self.metric.compute(predictions=predictions, references=references)
+        scores = self.metric.compute(predictions=predictions, references=references, lang='en')
         model.log("val_bertscore_f1", np.mean(scores["f1"]), batch_size=hyperparameters['batch_size'])
         print("val_bertscore_f1:", np.mean(scores["f1"]), "\n\n")
         return scores

@@ -9,6 +9,8 @@ from transformers.optimization import get_cosine_schedule_with_warmup
 from lightning.pytorch.loggers import WandbLogger
 from config import metrics
 from transformers import AutoProcessor
+from pytorch_lightning.utilities import rank_zero_info
+import wandb as wb
 
 generate_parameters = model_config['generate_parameters']
 MAX_LENGTH = generate_parameters['max_new_tokens']
@@ -81,35 +83,44 @@ class BLIP2ModelPLModule(L.LightningModule):
         # you could also add a learning rate scheduler if you want
         #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
 
-        #return optimizer
-        
-        optimizer = torch.optim.AdamW(
-            self.parameters(),
-            lr=self.hyperparams.get("lr"),
-            betas=self.hyperparams['betas'],
-            weight_decay=self.hyperparams['weight_decay']
-        )
-
-        # Calculate total steps based on epochs and batch size
-        total_epochs = self.hyperparams['max_epochs']
-        dataset_size = len(self.train_dataset)  # Assuming you have access to the dataset size
-        batch_size = self.hyperparams['batch_size']
-        steps_per_epoch = dataset_size // batch_size  # Integer division
-        total_steps = total_epochs * steps_per_epoch
-
-        # Convert warmup steps to warmup epochs if necessary
-        warmup_epochs = self.hyperparams['warmup_epochs']
-        warmup_steps = math.ceil(warmup_epochs * steps_per_epoch)
-
-        scheduler = get_cosine_schedule_with_warmup(
-            optimizer,
-            num_warmup_steps=warmup_steps,
-            num_training_steps=total_steps
-        )
+        optimizer = torch.optim.Adam(self.parameters(), lr=5e-4)
     
-        return [optimizer], [scheduler]
+        return optimizer
+    # TODO[atom] improve
+    # def configure_optimizers(self):
+    #     # you could also add a learning rate scheduler if you want
+    #     #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
+
+    #     #return optimizer
+        
+    #     optimizer = torch.optim.AdamW(
+    #         self.parameters(),
+    #         lr=self.hyperparams.get("lr"),
+    #         betas=self.hyperparams['betas'],
+    #         weight_decay=self.hyperparams['weight_decay']
+    #     )
+
+    #     # Calculate total steps based on epochs and batch size
+    #     total_epochs = self.hyperparams['max_epochs']
+    #     dataset_size = len(self.train_dataset)  # Assuming you have access to the dataset size
+    #     batch_size = self.hyperparams['batch_size']
+    #     steps_per_epoch = dataset_size // batch_size  # Integer division
+    #     total_steps = total_epochs * steps_per_epoch
 
 
+    #     # Convert warmup steps to warmup epochs if necessary
+    #     warmup_epochs = self.hyperparams['warmup_epochs']
+    #     warmup_steps = math.ceil(warmup_epochs * steps_per_epoch)
+        
+    #     print(f"Running warmup for a total of {warmup_steps} steps")
+
+    #     scheduler = get_cosine_schedule_with_warmup(
+    #         optimizer,
+    #         num_warmup_steps=warmup_steps,
+    #         num_training_steps=total_steps
+    #     )
+    
+    #     return [optimizer], [scheduler]
 
 class BLIP2PLModule(BLIP2ModelPLModule):
     

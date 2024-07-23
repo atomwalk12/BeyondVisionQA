@@ -3,11 +3,11 @@ dataset:
   name: "easy-vqa" 
 
 model:
-  peft_id: atomwalk12/blip2-aw12-easyvqa
+  peft_id: ybelkada/blip2-opt-2.7b-fp16-sharded # atomwalk12/blip2-aw12-easyvqa-text # ybelkada/blip2-opt-2.7b-fp16-sharded # 
   model_id: Salesforce/blip2-opt-2.7b
   # model_id: Salesforce/blip2-flan-t5-xl
   # model_id: Salesforce/blip2-flan-t5-xl-coco TODO see if inference takes as long
-  classification: true
+  classification: false
   continue: false
   revision: ~
   local_checkpoint_dir: "./lightning_checkpoints"
@@ -28,10 +28,10 @@ model:
       - 0.9
       - 0.999
     weight_decay: 0.05
-    max_length: 382
+    max_length: 256
 
   generate_parameters: 
-    max_new_tokens: 256 
+    max_new_tokens: 10
 
   peft:
     r: 16
@@ -41,4 +41,4 @@ model:
 
 wandb:
   project: "BLIP2"
-  name: "atomwalk12/instructblip-aw12-sqa-v2"
+  name: "atomwalk12/blip2-aw12-easyvqa-text"
