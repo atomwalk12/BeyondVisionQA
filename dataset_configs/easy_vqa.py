@@ -2,10 +2,37 @@ from easy_vqa import get_train_questions, get_test_questions, get_answers, get_t
 import os
 from datasets import load_dataset, Dataset
 from PIL import Image
+import numpy as np
+from config import model_config
 
+answers = get_answers()
 
+def to_categorical(y, num_classes):
+    """ 1-hot encodes a tensor """
+    return np.eye(num_classes, dtype='uint8')[y]
 
 def translate(example, training):
+    if model_config['classification']:
+        return use_numeric_labels(example, training)
+    else:
+        return use_textual_labels(example, training)
+
+def use_numeric_labels(example, training):
+    input = example["question"]
+    output = example["answer"]
+    
+    label = answers.index(output)
+    if training:   
+        one_hot_vector = to_categorical(label, len(answers))
+        ground_truth = { 'label_ids': [ label ], 'scores': np.array(one_hot_vector) }
+        
+        return input, ground_truth
+    else:
+        return input, label
+
+
+
+def use_textual_labels(example, training):
     input = example["question"]
     output = example["answer"]
     

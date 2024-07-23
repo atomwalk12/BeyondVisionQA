@@ -5,6 +5,7 @@ dataset:
 model:
   peft_id: "atomwalk12/instructblip-aw12-sqa-v2"
   model_id: "Salesforce/instructblip-vicuna-7b"
+  classification: false
   continue: False
   revision: None
   local_checkpoint_dir: "./lightning_checkpoints"

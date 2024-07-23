@@ -31,8 +31,6 @@ def train(module: L.LightningModule):
             check_val_every_n_epoch=hyperparams.get("check_val_every_n_epoch"),
             gradient_clip_val=hyperparams.get("gradient_clip_val"),
             precision="16-mixed",
-            limit_train_batches=10,
-            limit_val_batches=10,
             num_sanity_val_steps=0,
             default_root_dir=model_config['local_checkpoint_dir'],
             logger=wandb_logger,
@@ -46,13 +44,11 @@ def train(module: L.LightningModule):
 if __name__ == '__main__':
     # import ntlk
     # ntlk.download('wordnet')
-    
-
     # torch.multiprocessing.set_start_method('spawn')
     train_dataset = QADataset(dataset_config, split="train")
     val_dataset = QADataset(dataset_config, split="val")
     
-    model = get_model(quantization='4bit')
+    model = get_model(quantization='8bit')
     
     hyperparameters = model_config['hyperparameters']
     if model_config['target'] == 'blip2':

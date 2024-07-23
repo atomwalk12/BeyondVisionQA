@@ -4,9 +4,12 @@ dataset:
 
 model:
   peft_id: atomwalk12/blip2-aw12-easyvqa
-  model_id: Salesforce/blip2-flan-t5-xl
-  continue: False
-  revision: None
+  model_id: Salesforce/blip2-opt-2.7b
+  # model_id: Salesforce/blip2-flan-t5-xl
+  # model_id: Salesforce/blip2-flan-t5-xl-coco TODO see if inference takes as long
+  classification: true
+  continue: false
+  revision: ~
   local_checkpoint_dir: "./lightning_checkpoints"
   target: "blip2"
   hyperparameters:
@@ -16,7 +19,7 @@ model:
     gradient_clip_val: 1.0
     accumulate_grad_batches: 8
     lr: 0.0001
-    batch_size: 8
+    batch_size: 9
     seed: 1337
     num_nodes: 1
     result_path: "./result"
@@ -37,5 +40,5 @@ model:
     target_modules: all-linear
 
 wandb:
-  project: "InstructBLIP"
+  project: "BLIP2"
   name: "atomwalk12/instructblip-aw12-sqa-v2"

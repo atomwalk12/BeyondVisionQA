@@ -100,7 +100,7 @@ class EditDistanceMetric():
     
     def compute(self, predictions,references, model: L.LightningModule):
         scores = self.edit_distance(predictions=predictions, references=references)
-        model.log("val_rouge_f1", scores["rouge1"].mid.fmeasure)
+        model.log("val_rouge_f1", scores["rouge1"].mid.fmeasure, batch_size=hyperparameters['batch_size'])
         print("val_rouge_f1:", scores["rouge1"].mid.fmeasure)
         return scores
     
@@ -118,7 +118,7 @@ class RougeMetric():
     
     def compute(self, predictions,references, model: L.LightningModule):
         scores = self.metric.compute(predictions=predictions, references=references)
-        model.log("val_rouge_f1", scores["rouge1"].mid.fmeasure)
+        model.log("val_rouge_f1", scores["rouge1"].mid.fmeasure, batch_size=hyperparameters['batch_size'])
         print("val_rouge_f1:", scores["rouge1"].mid.fmeasure)
         return scores
     
@@ -129,7 +129,7 @@ class BertScoreMetric():
     
     def compute(self, predictions,references, model: L.LightningModule):
         scores = self.metric.compute(predictions=predictions, references=references)
-        model.log("val_bertscore_f1", np.mean(scores["f1"])) 
+        model.log("val_bertscore_f1", np.mean(scores["f1"]), batch_size=hyperparameters['batch_size'])
         print("val_bertscore_f1:", np.mean(scores["f1"]), "\n\n")
         return scores
 
@@ -139,7 +139,7 @@ class AccuracyMetric():
     
     def compute(self, predictions, references, model: L.LightningModule):
         scores = accuracy_score(y_pred=predictions, y_true=references)
-        model.log("accuracy", scores) 
+        model.log("accuracy", scores, batch_size=hyperparameters['batch_size'])
         print("accuracy:", scores)
         return scores
 
@@ -148,7 +148,7 @@ class F1ScoreMetric():
     
     def compute(self, predictions, references, model: L.LightningModule):
         scores = f1_score(y_pred=predictions, y_true=references, average='macro')
-        model.log("f1score", scores) 
+        model.log("f1score", scores, batch_size=hyperparameters['batch_size'])
         print("f1score:", scores)
         return scores
 
@@ -158,7 +158,7 @@ class WUPMeasure():
     
     def compute(self, predictions, references, model: L.LightningModule):
         scores = self.batch_wup_measure(predictions=predictions, references=references)
-        model.log("wup_measure", scores) 
+        model.log("wup_measure", scores, batch_size=hyperparameters['batch_size'])
         print("WUP Measure:", scores, "\n\n")
         return scores
     
@@ -223,7 +223,10 @@ class WUPMeasure():
         return final_score 
     
     def batch_wup_measure(self, references, predictions):
-        wup_scores = [self.wup_measure(label, pred) for label, pred in zip(references, predictions)]
+        if model_config['classification']:
+            wup_scores = [self.wup_measure(self.answer_space(label), self.answer_space[pred]) for label, pred in zip(references, predictions)]
+        else:
+            wup_scores = [self.wup_measure(label, pred) for label, pred in zip(references, predictions)]
         return np.mean(wup_scores)
 
 

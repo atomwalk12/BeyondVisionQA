@@ -21,7 +21,7 @@ processor = AutoProcessor.from_pretrained(MODEL_ID)
 # processor.tokenizer.padding_side = "right" # during training, one always uses padding on the right
 
 if dataset_config['name'] == "easy-vqa":
-    from dataset_configs.easy_vqa import translate   
+    from dataset_configs.easy_vqa import translate
 
 
 
@@ -45,7 +45,8 @@ class BLIP2ModelPLModule(L.LightningModule):
                             labels=labels)
         loss = outputs.loss
 
-        self.log("train_loss", loss)
+        print(loss.item())
+        self.log("train_loss", loss, batch_size=self.batch_size)
 
         return loss
 
@@ -115,7 +116,32 @@ class BLIP2PLModule(BLIP2ModelPLModule):
     def __init__(self, config, model, train_dataset, val_dataset):
         super().__init__(config, model, train_dataset, val_dataset)
     
-    def train_collate_fn(examples):
+    def train_numeric_labels(examples):
+        images = []
+        texts = []
+        batch_labels = []
+        for example in examples:
+            image, ground_truth = example
+            input, label = translate(ground_truth, training=True)
+            
+            images.append(image)
+            texts.append(input)
+            batch_labels.append({ 'label_ids': label['label_ids'], 'scores': torch.from_numpy(label['scores'])})
+
+        # inputs = processor(images=images, text=texts, return_tensors="pt").to(device="cuda", dtype=torch.float16)
+        inputs = processor(text=texts, images=images, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
+        
+        result = []
+
+        for label in batch_labels:
+            scores = label['scores']
+            result.append(scores)
+        
+        return inputs, torch.stack(result)
+
+
+    
+    def train_textual_labels(examples):
         images = []
         texts = []
         for example in examples:
@@ -133,8 +159,23 @@ class BLIP2PLModule(BLIP2ModelPLModule):
 
         return inputs, labels
 
+    def eval_numeric_labels(examples):
+        images = []
+        texts = []
+        answers = []
+        for example in examples:
+            image, ground_truth = example
+            input, output = translate(ground_truth, training=False)
+            
+            images.append(image)
+            texts.append(input) 
+            answers.append(output)
 
-    def eval_collate_fn(examples):
+        inputs = processor(text=texts, images=images, padding=True, return_tensors="pt")
+
+        return inputs, answers
+    
+    def eval_textual_labels(examples):
         images = []
         texts = []
         answers = []
@@ -152,8 +193,15 @@ class BLIP2PLModule(BLIP2ModelPLModule):
     
     
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, collate_fn=BLIP2PLModule.train_collate_fn, batch_size=self.batch_size, shuffle=True, num_workers=4)
+        if model_config['classification']:
+            return DataLoader(self.train_dataset, collate_fn=BLIP2PLModule.train_numeric_labels, batch_size=self.batch_size, shuffle=True, num_workers=4)
+        else:
+            return DataLoader(self.train_dataset, collate_fn=BLIP2PLModule.train_textual_labels, batch_size=self.batch_size, shuffle=True, num_workers=4)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, collate_fn=BLIP2PLModule.eval_collate_fn, batch_size=self.batch_size, shuffle=False, num_workers=4)
+        if model_config['classification']:
+            return DataLoader(self.val_dataset, collate_fn=BLIP2PLModule.eval_numeric_labels, batch_size=self.batch_size, shuffle=False, num_workers=4)
+        else:
+            return DataLoader(self.val_dataset, collate_fn=BLIP2PLModule.eval_textual_labels, batch_size=self.batch_size, shuffle=False, num_workers=4)
+        
     
