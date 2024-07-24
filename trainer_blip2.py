@@ -47,7 +47,6 @@ class BLIP2ModelPLModule(L.LightningModule):
                             labels=labels)
         loss = outputs.loss
 
-        print(loss.item())
         self.log("train_loss", loss, batch_size=self.batch_size)
 
         return loss
@@ -83,44 +82,44 @@ class BLIP2ModelPLModule(L.LightningModule):
         # you could also add a learning rate scheduler if you want
         #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
 
-        optimizer = torch.optim.Adam(self.parameters(), lr=5e-4)
+       # optimizer = torch.optim.Adam(self.parameters(), lr=5e-4)
     
-        return optimizer
+      #  return optimizer
     # TODO[atom] improve
-    # def configure_optimizers(self):
-    #     # you could also add a learning rate scheduler if you want
-    #     #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
+        # you could also add a learning rate scheduler if you want
+        #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
 
-    #     #return optimizer
+        #return optimizer
         
-    #     optimizer = torch.optim.AdamW(
-    #         self.parameters(),
-    #         lr=self.hyperparams.get("lr"),
-    #         betas=self.hyperparams['betas'],
-    #         weight_decay=self.hyperparams['weight_decay']
-    #     )
+        print("Applying both Adam and Cosine Scheduler Warmup")
+        optimizer = torch.optim.AdamW(
+            self.parameters(),
+            lr=self.hyperparams["lr"],
+            betas=self.hyperparams['betas'],
+            weight_decay=self.hyperparams['weight_decay']
+        )
 
-    #     # Calculate total steps based on epochs and batch size
-    #     total_epochs = self.hyperparams['max_epochs']
-    #     dataset_size = len(self.train_dataset)  # Assuming you have access to the dataset size
-    #     batch_size = self.hyperparams['batch_size']
-    #     steps_per_epoch = dataset_size // batch_size  # Integer division
-    #     total_steps = total_epochs * steps_per_epoch
+        # Calculate total steps based on epochs and batch size
+        total_epochs = self.hyperparams['max_epochs']
+        dataset_size = len(self.train_dataset)  # Assuming you have access to the dataset size
+        batch_size = self.hyperparams['batch_size']
+        steps_per_epoch = dataset_size // batch_size  # Integer division
+        total_steps = total_epochs * steps_per_epoch
 
 
-    #     # Convert warmup steps to warmup epochs if necessary
-    #     warmup_epochs = self.hyperparams['warmup_epochs']
-    #     warmup_steps = math.ceil(warmup_epochs * steps_per_epoch)
+        # Convert warmup steps to warmup epochs if necessary
+        warmup_epochs = self.hyperparams['warmup_epochs']
+        warmup_steps = math.ceil(warmup_epochs * steps_per_epoch)
         
-    #     print(f"Running warmup for a total of {warmup_steps} steps")
+        print(f"Running warmup for a total of {warmup_steps} steps")
 
-    #     scheduler = get_cosine_schedule_with_warmup(
-    #         optimizer,
-    #         num_warmup_steps=warmup_steps,
-    #         num_training_steps=total_steps
-    #     )
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=warmup_steps,
+            num_training_steps=total_steps
+        )
     
-    #     return [optimizer], [scheduler]
+        return [optimizer], [scheduler]
 
 class BLIP2PLModule(BLIP2ModelPLModule):
     
@@ -140,7 +139,7 @@ class BLIP2PLModule(BLIP2ModelPLModule):
             batch_labels.append({ 'label_ids': label['label_ids'], 'scores': torch.from_numpy(label['scores'])})
 
         # inputs = processor(images=images, text=texts, return_tensors="pt").to(device="cuda", dtype=torch.float16)
-        inputs = processor(text=texts, images=images, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
+        inputs = processor(text=texts, images=images, padding=True, truncation=True, return_tensors="pt")
         
         result = []
 
@@ -163,10 +162,9 @@ class BLIP2PLModule(BLIP2ModelPLModule):
             texts.append(input)    
 
         # inputs = processor(images=images, text=texts, return_tensors="pt").to(device="cuda", dtype=torch.float16)
-        inputs = processor(text=texts, images=images, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
+        inputs = processor(text=texts, images=images, padding=True, return_tensors="pt")
         
         labels = inputs["input_ids"].clone()
-        # TODO labels[labels == processor.tokenizer.pad_token_id] = -100 
 
         return inputs, labels
 

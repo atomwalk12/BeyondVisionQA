@@ -18,7 +18,7 @@ model:
     check_val_every_n_epoch: 1
     gradient_clip_val: 1.0
     accumulate_grad_batches: 8
-    lr: 0.0001
+    lr: 0.0005
     batch_size: 9
     seed: 1337
     num_nodes: 1

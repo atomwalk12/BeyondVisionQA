@@ -3,3 +3,4 @@ wandb
 __pycache__
 data
 BLIP2
+lightning_checkpoints
