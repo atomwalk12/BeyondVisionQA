@@ -5,11 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python Debugger: Main",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Python Debugger: HF trainer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/blip2-finetune-easyvqa-hf-trainer.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Lightning trainer",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/train_lightning_trainer.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

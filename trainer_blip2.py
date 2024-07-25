@@ -46,6 +46,7 @@ class BLIP2ModelPLModule(L.LightningModule):
         outputs = self.model(**inputs,
                             labels=labels)
         loss = outputs.loss
+        print(f"Epoch {self.current_epoch}, loss: {loss.item()}")
 
         self.log("train_loss", loss, batch_size=self.batch_size)
 
@@ -90,6 +91,7 @@ class BLIP2ModelPLModule(L.LightningModule):
         #optimizer = torch.optim.AdamW(self.parameters(), lr=self.config.get("lr"))
 
         #return optimizer
+        return torch.optim.Adam(self.parameters(), lr=5e-4)
         
         print("Applying both Adam and Cosine Scheduler Warmup")
         optimizer = torch.optim.AdamW(

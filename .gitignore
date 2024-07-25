@@ -4,3 +4,5 @@ __pycache__
 data
 BLIP2
 lightning_checkpoints
+source.md
+lightning_logs
