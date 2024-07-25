@@ -59,3 +59,6 @@ class QADataset(Dataset):
         target_sequence = self.token_sequences[index]  # can be more than one, e.g., DocVQA Task 1
 
         return image, target_sequence
+    
+    def select(self, count):
+        return self.dataset.select(count)
